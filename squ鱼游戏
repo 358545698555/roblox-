@@ -1,0 +1,166 @@
+local Translations = {
+   --["Interact"] = "交互",
+    ["Games"] = "游戏",
+    ["Activate Instant Interact"] = "激活即时互动",
+    ["Hide & Seek"] = "躲猫猫与钥匙",
+    ["TP To Safe Area"] = "传送至安全区",
+    ["Jump Rope"] = "跳绳",
+    ["Delete Rope"] = "删除绳子",
+    ["TP To End"] = "传送终点",
+    ["Rebel"] = "反叛",
+    ["TP To Frontman's Room"] = "传送前锋的房间",
+    ["Toggle"] = "切换",
+    ["Kaizen | Jexar | Version: 1.1"] = "本人QQ2705495089|免费帮汉化脚本",
+    ["Player"] = "玩家",
+    ["Boost"] = "数值",
+    ["Speed Boost"] = "速度提升",
+    ["Activate Speed Boost"] = "激活速度提升",
+    ["Jump Boost"] = "跳跃提升",
+    ["Activate Jump Boost"] = "激活跳跃提升",
+    ["Hip Height"] = "臀部高度",
+    ["Activate Hip Height"] = "激活臀部高度",
+    ["Fly"] = "飞",
+    ["Fly GUI"] = "飞GUI",
+    ["Noclip"] = "穿墙",
+    ["Noclip"] = "穿墙",
+    ["Attach To Player"] = "附加到玩家",
+    ["Attach Distance (studs)"] = "连接距离（螺柱）",
+    ["Teleport Back"] = "传送回去",
+    ["Select player"] = "选择玩家",
+    ["Activate Attach Player"] = "激活附加播放器",
+    ["Jump"] = "跳",
+    ["Infinite Jump"] = "无限跳跃",
+    ["Fly Jump"] = "飞行跳跃",
+    ["Hitbox"] = "命中框",
+    ["Hitbox Expander"] = "命中框增加",
+    ["Show Hitbox"] = "显示命中框",
+    ["Hitbox Size"] = "命中框大小",
+    ["Other"] = "其他",
+    ["Jerk Tool"] = "倒管",
+    ["Lock"] = "锁定",
+    ["Hitbox Transparency"] = "命中框透明度",
+    ["Lightning"] = "闪电",
+    ["FullBright"] = "高亮",
+    ["Shiftlock"] = "锁定键",
+    ["Enable Shiftlock"] = "使用锁定键",
+    ["Unlock"] = "解锁",
+    ["Safe Part"] = "安全的位置",
+    ["HP To TP Safe Part Under"] = "传送距离（或者高度）",
+    ["Safe Part Teleport"] = "安全的地方传送",
+    ["Safe Part Teleport Under"] = "安全的地方传送下面",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+--这下面填加载外部脚本
+loadstring(game:HttpGet("https://raw.githubusercontent.com/madenciicom/squidgamex/refs/heads/main/SquidGameX_KaiXar.lua"))()
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end

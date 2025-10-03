@@ -1,0 +1,167 @@
+local Translations = {
+   --["UB Hub- Universal Ultra| Version: 1.18"] = "本人QQ2705495089|免费汉化",
+    ["Home"] = "首页",
+    ["Discord"] = "本人QQ2705495089|免费汉化脚本",
+    ["Copy Server Link"] = "复制服务器链接",
+    ["LocalPlayer"] = "本地玩家",
+    ["Walkspeed"] = "步行速度",
+    ["Enable Walkspeed"] = "启用速度",
+    ["JumpPower"] = "跳跃高度",
+    ["Enable JumpPower"] = "启用跳跃",
+    ["Infinite Jump"] = "无限跳跃",
+    ["Noclip"] = "穿墙",
+    ["Full Bright"] = "高亮",
+    ["Methods Bypass"] = "方法绕过",
+    ["Walkspeed"] = "步行速度",
+    ["Enable Walkspeed (bypass some game)"] = "开启步行速度（绕过一些游戏）",
+    ["Other Script"] = "其他脚本",
+    ["Open fly Gui"] = "飞行",
+    ["Teleport"] = "传送",
+    ["Players"] = "玩家",
+    ["Select Player"] = "选择玩家",
+    ["Teleport to player"] = "传送至玩家",
+    ["Follow Player"] = "👁监视玩家👁",
+    ["Tween Speed"] = "渐变速度",
+    ["Tween to player"] = "渐变到玩家",
+    ["Trolling"] = "出生功能",
+    ["Fling Player"] = "投掷玩家",
+    ["OVisuals"] = "透视",
+    ["Visuals"] = "视觉效果",
+    ["Extra Sensory Perception"] = "变成男娘按钮",
+    ["Enable ESP"] = "启用ESP",
+    ["Server"] = "服务器",
+    ["Connection"] = "连接",
+    ["Auto Reconnect"] = "自动重新连接",
+    ["Delay(Seconds)"] = "延迟(秒)",
+    ["Use Reconnect Delay"] = "使用重新连接延迟",
+    ["Rejoin current server"] = "重新连接当前服务器",
+    ["Rejoin current server (NO SCRIPT)"] = "重新连接当前服务器（不带脚本）",
+    ["Safety"] = "安全",
+    ["Anti Void"] = "阿巴阿巴（翻译不出来）",
+    ["YValue"] = "也出不来",
+    ["Default"] = "默认配置",
+    ["Use Anti Void"] = "反虚空",
+    ["Settings"] = "设置",
+    ["Keybinds"] = "我有18厘米！",
+    ["Keybind (ESP)"] = "密钥绑定（ESP）",
+    ["LeftControl"] = "左控制",
+    ["Close"] = "关闭",
+    ["You are sure to exit script?"] = "这就不行了？小男娘",
+    ["Yes"] = "嗯",
+    ["No"] = "我还能继续！",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+--这下面填加载外部脚本
+_G.UBKey = "MEMBER_6A5PJ140WR"loadstring(game:HttpGet("https://gitlab.com/r_soft/main/-/raw/main/LoadUB.lua"))()
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end

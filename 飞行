@@ -1,0 +1,88 @@
+local CFSpeed = 50
+local CFLoop = nil
+
+local function StartCFly()
+    local speaker = game.Players.LocalPlayer
+    local character = speaker.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass('Humanoid')
+    local head = character:WaitForChild("Head")
+    
+    if not humanoid or not head then return end
+    
+    humanoid.PlatformStand = true
+    head.Anchored = true
+    
+    if CFLoop then 
+        CFLoop:Disconnect() 
+        CFLoop = nil
+    end
+    
+    CFLoop = RunService.Heartbeat:Connect(function(deltaTime)
+        if not character or not humanoid or not head then 
+            if CFLoop then 
+                CFLoop:Disconnect() 
+                CFLoop = nil
+            end
+            return 
+        end
+        
+        local moveDirection = humanoid.MoveDirection * (CFSpeed * deltaTime)
+        local headCFrame = head.CFrame
+        local camera = workspace.CurrentCamera
+        local cameraCFrame = camera.CFrame
+        local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+        cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+        local cameraPosition = cameraCFrame.Position
+        local headPosition = headCFrame.Position
+
+        local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
+        head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+    end)
+end
+
+local function StopCFly()
+    local speaker = game.Players.LocalPlayer
+    local character = speaker.Character
+    
+    if CFLoop then
+        CFLoop:Disconnect()
+        CFLoop = nil
+    end
+    
+    if character then
+        local humanoid = character:FindFirstChildOfClass('Humanoid')
+        local head = character:FindFirstChild("Head")
+        
+        if humanoid then
+            humanoid.PlatformStand = false
+        end
+        if head then
+            head.Anchored = false
+        end
+    end
+end
+
+ZZ:AddToggle("CFlyToggle", {
+    Text = "飞行",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            StartCFly()
+        else
+            StopCFly()
+        end
+    end
+})
+
+ZZ:AddSlider("CFlySpeed", {
+    Text = "飞行速度",
+    Default = 50,
+    Min = 1,
+    Max = 200,
+    Rounding = 1,
+    Callback = function(Value)
+        CFSpeed = Value
+    end
+})

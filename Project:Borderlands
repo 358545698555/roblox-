@@ -1,0 +1,202 @@
+local Translations = {
+   --["Project: Hackerlands"] = "骚福瑞：叫88",
+    ["Main"] = "主要",
+    ["Anti-FOV Change"] = "反视野范围修改",
+    ["Venue Forcefield Anti-Die"] = "场馆力量场反死亡",
+    ["button"] = "启动！",
+    ["Remove Barriers"] = "移除障碍",
+    ["Full Bright"] = "高亮",
+    ["Instant Proximity Duration"] = "瞬间接近时长",
+    ["TP to Venue and Register"] = "前往场地并登记",
+    ["Have a TP to Venue and Register Keybind"] = "具有传送到场所和注册密钥绑定",
+    ["TP to Venue and Register Keybind"] = "传送到会场和注册键绑定",
+    ["(FE) Role Titles"] = "（FE）角色名称",
+    ["Apply Catalyst Role"] = "应用催化剂作用",
+    ["Apply Final Boy Role"] = "应用最终男孩角色",
+    ["Apply Final Girl Role"] = "应用最终女孩角色",
+    ["Apply Juggernaut Role"] = "应用主宰角色",
+    ["Apply Manipulator Role"] = "应用操纵者角色",
+    ["Apply Mastermind Role"] = "运用策划角色",
+    ["Unequip Role"] = "取消角色",
+    ["Stamina Based"] = "耐力",
+    ["Infinite Stamina"] = "无限耐力",
+    ["Quick Stamina Replenish"] = "快速补充体力",
+    ["Enable Sprinting"] = "启用冲刺",
+    ["(FE) Chat Bypass"] = "(FE) 聊天绕过",
+    ["What to Say"] = "说什么",
+    ["Input Placeholder"] = "输入文本",
+    ["Chat It"] = "启用聊天",
+    ["Diamonds"] = "钻石",
+    ["King of Diamonds"] = "钻石之王",
+    ["Infinite Points"] = "无限点数",
+    ["Actual INFINITE Points (Irreversable)"] = "实际无限积分（不可逆）",
+    ["Set Points Back to 0"] = "将积分重置为0",
+    ["Add a Point"] = "添加一个点",
+    ["Remove a Point"] = "移除一个点",
+    ["Current Points"] = "当前积分",
+    ["Be Able to Jump Out of Seat"] = "能够从座位上跳起来",
+    ["4 of Diamonds"] = "方块4",
+    ["Get Correct Switch"] = "获取正确开关",
+    ["Spades"] = "黑桃",
+    ["Queen of Spades"] = "黑桃皇后",
+    ["Fall off without dying"] = "摔落而不死",
+    ["7 of Spades"] = "黑桃7",
+    ["Just chill and do nothing"] = "放松一下，什么都不做",
+    ["TP to Exit"] = "传送退出",
+    ["2 of Spades"] = "黑桃2",
+    ["Auto Clicker"] = "自动连点器",
+    ["5 of Spades"] = "黑桃5",
+    ["Win Room ESP"] = "赢得房间ESP",
+    ["Fall Anti-Die"] = "防坠落模具",
+    ["Hearts"] = "心",
+    ["7 of Hearts"] = "红心7",
+    ["Teleport Outside the Bounds"] = "传送到边界外",
+    ["Teleport Back Inside"] = "传送回内部",
+    ["Jack of Hearts"] = "红心j",
+    ["Get Self Suit"] = "穿上自我套装",
+    ["Remove Suit Display"] = "移除套装显示",
+    ["2 of Hearts"] = "红心2",
+    ["Toxic Room ESP"] = "有毒房间透视",
+    ["Clubs"] = "俱乐部",
+    ["Jack of Clubs"] = "梅花j",
+    ["Floor God Mode"] = "地板神模式",
+    ["4 of Clubs"] = "梅花4",
+    ["Water God Mode"] = "水神模式",
+    ["TP to End"] = "传送到结束",
+    ["10 of Clubs"] = "梅花10",
+    ["Bingo TP GUI"] = "宾果传送图形用户界面",
+    ["3 of Clubs"] = "梅花3",
+    ["Wrong Room ESP"] = "错误房间透视",
+    ["King of Clubs"] = "梅花k",
+    ["Item Box ESP(ESPs All the Containers Containing it)"] = "项目箱透视（透视所有集装箱）",
+    ["Joker"] = "小丑",
+    ["Fortune"] = "财富",
+    ["Fortune God Mode (new method)"] = "财神模式（新方法）",
+    ["Fortune God Mode (Delete Arrows Method)"] = "财神模式（删除箭头方法）",
+    ["Remove Barriers"] = "移除障碍",
+    ["TP Back to the top (incase ur using method 1 god mode)"] = "返回顶部（如果你在使用方法1无敌模式）",
+    ["Get Answer"] = "获得答案",
+    ["Laser Thingy"] = "激光",
+    ["TP to End"] = "传送到结束",
+    ["Kick a Chil- the Can!"] = "踢罐子",
+    ["TP to Can"] = "传送到罐子",
+    ["TP to Hatch (Return Can)"] = "传送到舱口（返回罐）",
+    ["Other"] = "其他",
+    ["Infinite Yield"] = "无限收益",
+    ["Show Rayfield"] = "少羽NB",
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+--这下面填加载外部脚本
+loadstring(game:HttpGet("https://raw.githubusercontent.com/UltraFEmotes/hackerland/refs/heads/main/hackerland.lua"))()
+
+
+end)
+
+if not success then
+    warn("加载失败:", err)
+end

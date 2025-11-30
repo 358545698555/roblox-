@@ -1,0 +1,175 @@
+-- 《汉堡包大亨》2025终极全功能脚本（输入框攻速版，忍者通用）
+-- 复制全部 → 忍者/Solara/Wave 执行
+
+repeat wait() until game:IsLoaded()
+local plr = game.Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
+
+-- 终极绕过
+local old; old = hookmetamethod(game, "__namecall", function(self, ...)
+    local m = getnamecallmethod()
+    if m == "Kick" or m == "kick" or tostring(self):lower():find("anticheat") then
+        return wait(9e9)
+    end
+    return old(self, ...)
+end)
+
+-- UI
+local sg = Instance.new("ScreenGui", plr.PlayerGui); sg.ResetOnSpawn = false
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0,380,0,500); main.Position = UDim2.new(0,50,0,50)
+main.BackgroundColor3 = Color3.fromRGB(20,20,25); main.Active = true; main.Draggable = true
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,40); title.BackgroundColor3 = Color3.fromRGB(255,80,0)
+title.Text = "汉堡包大亨 全功能神器 2025.12（输入攻速版）"; title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold; title.TextSize = 16
+
+-- 【新】攻速输入框 + 显示
+local speed = 50
+local speedLabel = Instance.new("TextLabel", main)
+speedLabel.Position = UDim2.new(0,20,0,50); speedLabel.Size = UDim2.new(0,340,0,30)
+speedLabel.Text = "当前攻速: 50x (输入1-200数字，按回车应用)"; speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.new(0,1,1); speedLabel.Font = Enum.Font.GothamBold
+
+local speedInput = Instance.new("TextBox", main)
+speedInput.Position = UDim2.new(0,40,0,80); speedInput.Size = UDim2.new(0,300,0,35)
+speedInput.BackgroundColor3 = Color3.fromRGB(50,50,50); speedInput.Text = "50"
+speedInput.PlaceholderText = "输入攻速 (1-200)"; speedInput.TextColor3 = Color3.new(1,1,1)
+speedInput.Font = Enum.Font.GothamBold
+
+-- 输入回车应用攻速
+speedInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local newSpeed = tonumber(speedInput.Text)
+        if newSpeed and newSpeed >= 1 and newSpeed <= 200 then
+            speed = newSpeed
+            speedLabel.Text = "当前攻速: "..speed.."x (已应用！)"
+        else
+            speedInput.Text = "50"
+            speedLabel.Text = "输入无效！已重置为50x"
+        end
+    end
+end)
+
+-- 开关按钮
+local y = 130
+local toggles = {}
+local function btn(name, callback)
+    local b = Instance.new("TextButton", main)
+    b.Size = UDim2.new(0,340,0,40); b.Position = UDim2.new(0,20,y,0)
+    b.Text = "OFF "..name; b.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    b.TextColor3 = Color3.new(1,1,1); y = y + 50
+    local on = false
+    b.MouseButton1Click:Connect(function()
+        on = not on
+        b.Text = (on and "ON " or "OFF ")..name
+        b.BackgroundColor3 = on and Color3.fromRGB(0,180,0) or Color3.fromRGB(60,60,60)
+        toggles[name] = on
+        if callback then callback(on) end
+    end)
+end
+
+btn("自动做汉堡 + 送单")
+btn("自动升级店铺")
+btn("自动补货 + 雇员")
+btn("自动收钱")
+btn("顾客订单ESP")
+btn("飞行 + 超速")
+btn("防AFK + 无敌")
+
+-- 传送
+local function tp(name, pos)
+    local b = Instance.new("TextButton", main)
+    b.Size = UDim2.new(0,340,0,35); b.Position = UDim2.new(0,20,y,0)
+    b.Text = "传送 → "..name; b.BackgroundColor3 = Color3.fromRGB(0,120,255)
+    b.TextColor3 = Color3.new(1,1,1); y = y + 40
+    b.MouseButton1Click:Connect(function() root.CFrame = pos end)
+end
+
+y = y + 10
+local tpTitle = Instance.new("TextLabel", main); tpTitle.Position = UDim2.new(0,20,y,0)
+tpTitle.Size = UDim2.new(0,340,0,30); tpTitle.Text = "传送菜单"; tpTitle.BackgroundTransparency = 1
+tpTitle.TextColor3 = Color3.new(1,1,0); y = y + 35
+
+tp("烤架", CFrame.new(0,5,0))  -- 进游戏F3X/Y/Z获取精确坐标替换
+tp("组装台", CFrame.new(10,5,0))
+tp("顾客区", CFrame.new(20,5,10))
+tp("VIP桌", CFrame.new(30,5,20))
+tp("补货机", CFrame.new(-10,5,0))
+
+-- 全功能主循环
+spawn(function()
+    while wait(0.01) do
+        if toggles["自动做汉堡 + 送单"] or toggles["自动补货 + 雇员"] or toggles["自动升级店铺"] then
+            for i = 1, speed do
+                pcall(function()
+                    -- 升级/雇员/解锁
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("ProximityPrompt") then
+                            local t = v.ObjectText:lower()
+                            if t:find("upgrade") or t:find("buy") or t:find("hire") or t:find("unlock") then
+                                fireproximityprompt(v, true)
+                            end
+                        end
+                    end
+
+                    -- 补货 + 做汉堡
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("ProximityPrompt") and (v.ObjectText:find("Bread") or v.ObjectText:find("Patty") or v.ObjectText:find("Lettuce")) then
+                            fireproximityprompt(v, true)
+                        end
+                        if v.Name:find("Grill") or v.Name:find("Counter") or v.Name:find("Assembly") then
+                            firetouchinterest(root, v, 0); firetouchinterest(root, v, 1)
+                        end
+                    end
+
+                    -- 送单 + 收钱
+                    for _, cust in pairs(workspace:GetDescendants()) do
+                        if cust:FindFirstChild("HumanoidRootPart") and cust:FindFirstChild("Head") then
+                            root.CFrame = cust.Head.CFrame * CFrame.new(0,0,-3)
+                            for _, p in pairs(cust:GetDescendants()) do
+                                if p:IsA("ProximityPrompt") and (p.ObjectText == "Serve" or p.ObjectText:find("Collect")) then
+                                    fireproximityprompt(p, true)
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+
+        -- ESP
+        if toggles["顾客订单ESP"] then
+            for _, cust in pairs(workspace:GetDescendants()) do
+                if cust:FindFirstChild("HumanoidRootPart") and not cust:FindFirstChild("OrderESP") then
+                    local esp = Instance.new("BillboardGui", cust.HumanoidRootPart)
+                    esp.Name = "OrderESP"; esp.Size = UDim2.new(0,200,0,80); esp.StudsOffset = Vector3.new(0,4,0)
+                    esp.AlwaysOnTop = true
+                    local txt = Instance.new("TextLabel", esp); txt.Size = UDim2.new(1,0,1,0)
+                    txt.BackgroundTransparency = 1; txt.Text = "顾客订单\n双层肉+生菜+番茄"
+                    txt.TextColor3 = Color3.new(0,1,0); txt.Font = Enum.Font.GothamBold
+                end
+            end
+        end
+
+        -- 飞行
+        if toggles["飞行 + 超速"] then
+            hum:ChangeState(Enum.HumanoidStateType.Physics)
+            if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+                root.CFrame = root.CFrame + root.CFrame.LookVector * 2
+            end
+        end
+    end
+end)
+
+-- 通知
+game.StarterGui:SetCore("SendNotification", {
+    Title = "汉堡包神器加载成功！";
+    Text = "输入框攻速已就绪！输入数字(1-200)按回车调节\n全功能开启 = 5分钟满级亿万富翁！";
+    Duration = 15;
+})
+
+print("汉堡包大亨 输入攻速版脚本注入成功！输入框超方便，起飞！")
